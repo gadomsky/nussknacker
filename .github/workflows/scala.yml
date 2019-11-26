@@ -13,6 +13,13 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Cache Primes
+      id: cache-primes
+      uses: actions/cache@v1
+      with:
+        path: $GITHUB_WORKSPACE/.ivy2/cache
+        key: ivy2
+
     - name: Run tests
       run: printenv | sort 
       with:
@@ -24,4 +31,4 @@ jobs:
         DOCKER_SOURCE_TAG: tag
         DOCKER_REPOSITORY: repo
         COVERAGE: `echo "true"`
-        CROSS_BUILD: `echo "true"`      
+        CROSS_BUILD: `echo "true"`
