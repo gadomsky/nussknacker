@@ -19,9 +19,10 @@ jobs:
       with:
         path: ${{ env.GITHUB_WORKSPACE }}/.ivy2/cache
         key: ivy2
+    - name: Setup envs
+      run: echo "::set-env name=action_state::${date '+%Y_%m_%d_%H_%M'}"    
     - name: Run tests
       run: printenv | sort 
       env:
         APPLICATION_NAME: nussknacker
         SANITIZED_BRANCH: actions
-        FORMATTED_DATE: ${{ date '+%Y_%m_%d_%H_%M' }}
