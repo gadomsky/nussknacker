@@ -9,4 +9,4 @@ else
    ARGS="$*"
 fi
 echo "Executing: sbt $ARGS"
-sbt $ARGS
+./sbtwrapper $ARGS
