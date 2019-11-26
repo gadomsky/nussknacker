@@ -19,13 +19,23 @@ jobs:
       with:
         path: .ivy2/cache
         key: ivy2
-        path: .ivy2/cache2
-        key: ivy22
     - name: PWD
       run: pwd    
     - name: Setup envs
       run: echo "::set-env name=FORMATTED_DATE::"+`date '%Y_%m_%d_%H_%M'`    
-    - name: Run tests
+    - name: Backend tests
+      run: ./ciBackendTest.sh
+    - name: UI slow tests
+      run: ./ciRunSbt.sh clean ui/slow:test
+    - name: Management tests
+      run: ./ciRunSbt.sh clean management/it:test
+    - name: Cross Scala compile
+      run: CROSS_BUILD=true ./ciRunSbt.sh clean compile:compile test:compile
+    - name: Engine standalone tests
+      run: ./ciRunSbt.sh clean engineStandalone/it:test
+    - name: Fronted tests
+      run: ./ciFrontendTest.sh
+    - name: Print env
       run: printenv | sort 
       env:
         APPLICATION_NAME: nussknacker
