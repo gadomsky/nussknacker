@@ -21,7 +21,7 @@ jobs:
         key: ivy2
     - name: Run tests
       run: printenv | sort 
-      with:
+      env:
         APPLICATION_NAME: nussknacker
         SANITIZED_BRANCH: actions
         FORMATTED_DATE: ${{ date '+%Y_%m_%d_%H_%M' }}
