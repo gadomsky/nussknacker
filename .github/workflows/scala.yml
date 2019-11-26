@@ -17,18 +17,11 @@ jobs:
       id: cache-primes
       uses: actions/cache@v1
       with:
-        path: $GITHUB_WORKSPACE/.ivy2/cache
+        path: ${{ GITHUB_WORKSPACE }}/.ivy2/cache
         key: ivy2
-
     - name: Run tests
       run: printenv | sort 
       with:
         APPLICATION_NAME: nussknacker
         SANITIZED_BRANCH: actions
-        COMMIT: `git rev-parse HEAD`
-        FORMATTED_DATE: `date '+%Y_%m_%d_%H_%M'`
-        BUILD_VERSION: "${FORMATTED_DATE}-${SANITIZED_BRANCH}-$COMMIT"
-        DOCKER_SOURCE_TAG: tag
-        DOCKER_REPOSITORY: repo
-        COVERAGE: `echo "true"`
-        CROSS_BUILD: `echo "true"`
+        FORMATTED_DATE: ${{ date '+%Y_%m_%d_%H_%M'}}
