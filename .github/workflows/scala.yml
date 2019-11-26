@@ -17,12 +17,14 @@ jobs:
       id: cache-primes
       uses: actions/cache@v1
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/.ivy2/cache
+        path: .ivy2/cache
         key: ivy2
+        path: .ivy2/cache2
+        key: ivy22
     - name: PWD
       run: pwd    
     - name: Setup envs
-      run: echo "::set-env name=FORMATTED_DATE::"+`date '+%Y_%m_%d_%H_%M'`    
+      run: echo "::set-env name=FORMATTED_DATE::"+`date '%Y_%m_%d_%H_%M'`    
     - name: Run tests
       run: printenv | sort 
       env:
