@@ -6,6 +6,8 @@ import sbtassembly.AssemblyPlugin.autoImport.assembly
 import sbtassembly.MergeStrategy
 import ReleaseTransformations._
 
+import scala.util.Try
+
 val scala211 = "2.11.12"
 val scala212 = "2.12.10"
 lazy val supportedScalaVersions = List(scala212, scala211)
@@ -23,7 +25,7 @@ val dockerTagName = Option(System.getProperty("dockerTagName"))
 val dockerPort = System.getProperty("dockerPort", "8080").toInt
 val dockerUserName = Some(System.getProperty("dockerUserName", "touk"))
 val dockerPackageName = System.getProperty("dockerPackageName", "nussknacker")
-val dockerUpLatest = System.getProperty("dockerUpLatest", "true").toBoolean
+val dockerUpLatestFromProp = Option(System.getProperty("dockerUpLatest")).flatMap(p => Try(p.toBoolean).toOption)
 val addDevModel = System.getProperty("addDevModel", "false").toBoolean
 
 // `publishArtifact := false` should be enough to keep sbt from publishing root module,
@@ -39,18 +41,14 @@ lazy val publishSettings = Seq(
   publishMavenStyle := true,
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   publishTo := {
-    if (!isSnapshot.value) { // can't find any better solution how to pass it from release pipeline
-      sonatypePublishToBundle.value
-    } else {
-      nexusUrlFromProps.map { url =>
-        (if (isSnapshot.value) "snapshots" else "releases") at url
-      }.orElse {
-        val defaultNexusUrl = "https://oss.sonatype.org/"
-        if (isSnapshot.value)
-          Some("snapshots" at defaultNexusUrl + "content/repositories/snapshots")
-        else
-          Some("releases" at defaultNexusUrl + "service/local/staging/deploy/maven2")
-      }
+    nexusUrlFromProps.map { url =>
+      (if (isSnapshot.value) "snapshots" else "releases") at url
+    }.orElse {
+      val defaultNexusUrl = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at defaultNexusUrl + "content/repositories/snapshots")
+      else
+        sonatypePublishToBundle.value
     }
   },
   publishArtifact in Test := false,
@@ -147,6 +145,7 @@ val forkSettings = Seq(
 
 val akkaV = "2.5.21" //same version as in Flink
 val flinkV = "1.9.1"
+val avroV = "1.8.2" // should be the same as in flink-avro
 val kafkaV = "2.2.0"
 val springV = "5.1.4.RELEASE"
 val scalaTestV = "3.0.8"
@@ -191,7 +190,7 @@ lazy val dockerSettings = {
     dockerBaseImage := "openjdk:8-jdk",
     dockerUsername := dockerUserName,
     packageName := dockerPackageName,
-    dockerUpdateLatest := dockerUpLatest,
+    dockerUpdateLatest := dockerUpLatestFromProp.getOrElse(!isSnapshot.value),
     dockerLabels := Map(
       "tag" -> dockerTagName.getOrElse(version.value),
       "version" -> version.value,
@@ -445,6 +444,7 @@ lazy val interpreter = (project in engine("interpreter")).
         "javax.validation" % "validation-api" % javaxValidationApiV,
         "org.hsqldb" % "hsqldb" % hsqldbV,
         "org.scala-lang.modules" %% "scala-java8-compat" % scalaCompatV,
+        "org.apache.avro" % "avro" % avroV % "test",
         "org.scalacheck" %% "scalacheck" % scalaCheckV % "test"
       )
     }

@@ -6,7 +6,7 @@ import pl.touk.nussknacker.engine.api.exception.ExceptionHandlerFactory
 import pl.touk.nussknacker.engine.api.process.{ProcessObjectDependencies, _}
 import pl.touk.nussknacker.engine.avro._
 import pl.touk.nussknacker.engine.flink.util.exception.BrieflyLoggingExceptionHandler
-import pl.touk.nussknacker.engine.flink.util.transformer.aggregate.sampleTransformers.SimpleSlidingAggregateTransformer
+import pl.touk.nussknacker.engine.flink.util.transformer.aggregate.sampleTransformers.{SimpleSlidingAggregateTransformerV2, SimpleTumblingAggregateTransformer}
 import pl.touk.nussknacker.engine.flink.util.transformer.{PreviousValueTransformer, UnionTransformer}
 import pl.touk.nussknacker.engine.kafka.generic.sinks.GenericKafkaJsonSink
 import pl.touk.nussknacker.engine.kafka.generic.sources.{GenericJsonSourceFactory, GenericTypedJsonSourceFactory}
@@ -22,7 +22,8 @@ class GenericConfigCreator extends EmptyProcessConfigCreator {
 
   override def customStreamTransformers(processObjectDependencies: ProcessObjectDependencies): Map[String, WithCategories[CustomStreamTransformer]] = Map(
     "previousValue" -> defaultCategory(PreviousValueTransformer),
-    "aggregate" -> defaultCategory(SimpleSlidingAggregateTransformer),
+    "aggregate" -> defaultCategory(SimpleSlidingAggregateTransformerV2),
+    "aggregate-tumbling" -> defaultCategory(SimpleTumblingAggregateTransformer),
     "union" -> defaultCategory(UnionTransformer)
   )
 

@@ -22,9 +22,10 @@ import pl.touk.nussknacker.engine.expression.NullExpression
 import pl.touk.nussknacker.engine.spel.Typer._
 import pl.touk.nussknacker.engine.spel.ast.SpelAst.SpelNodeId
 import pl.touk.nussknacker.engine.spel.ast.SpelNodePrettyPrinter
-import pl.touk.nussknacker.engine.spel.typer.TypeMethodReference
+import pl.touk.nussknacker.engine.spel.typer.{MapLikePropertyTyper, TypeMethodReference}
 import pl.touk.nussknacker.engine.types.EspTypeUtils
 
+import scala.annotation.tailrec
 import scala.reflect.runtime._
 
 private[spel] class Typer(classLoader: ClassLoader, commonSupertypeFinder: CommonSupertypeFinder,
@@ -125,8 +126,9 @@ private[spel] class Typer(classLoader: ClassLoader, commonSupertypeFinder: Commo
 
 
       case e: InlineList => withTypedChildren { children =>
-        val childrenTypes = children.toSet
-        Valid(Typed.genericTypeClass[java.util.List[_]](List(Typed(childrenTypes))))
+        //We don't want Typed.empty here, as currently it means it won't validate for any signature
+        val elementType = if (children.isEmpty) Unknown else Typed(children.toSet)
+        Valid(Typed.genericTypeClass[java.util.List[_]](List(elementType)))
       }
 
       case e: InlineMap =>
@@ -274,7 +276,6 @@ private[spel] class Typer(classLoader: ClassLoader, commonSupertypeFinder: Commo
   }
 
   private def extractProperty(e: PropertyOrFieldReference, t: TypingResult): ValidatedNel[ExpressionParseError, TypingResult] = t match {
-    case typed: TypingResult if typed.canHasAnyPropertyOrField => Valid(Unknown)
     case Unknown => Valid(Unknown)
     case s: SingleTypingResult =>
       extractSingleProperty(e)(s)
@@ -286,24 +287,29 @@ private[spel] class Typer(classLoader: ClassLoader, commonSupertypeFinder: Commo
         Valid(Typed(l.toSet))
   }
 
+  @tailrec
   private def extractSingleProperty(e: PropertyOrFieldReference)
-                                   (t: SingleTypingResult) = {
-    def extractClass(typedClass: TypedClass) = {
-      val clazzDefinition = EspTypeUtils.clazzDefinition(typedClass.klass)(ClassExtractionSettings.Default)
-      clazzDefinition.getPropertyOrFieldType(e.getName).map(Valid(_)).getOrElse(invalid(s"There is no property '${e.getName}' in type: ${t.display}"))
-    }
+                                   (t: SingleTypingResult): ValidatedNel[ExpressionParseError, TypingResult]  = {
     t match {
-      case typed: SingleTypingResult if typed.canHasAnyPropertyOrField =>
-        Valid(Unknown)
-      case typedClass: TypedClass =>
-        extractClass(typedClass)
-      case typed: TypedObjectTypingResult =>
-        typed.fields.get(e.getName).map(Valid(_)).getOrElse(invalid(s"There is no property '${e.getName}' in type: ${t.display}"))
       case tagged: TypedTaggedValue =>
-        extractClass(tagged.objType)
+        extractSingleProperty(e)(tagged.objType)
+      case typedClass: TypedClass =>
+        propertyTypeBasedOnMethod(e)(typedClass).orElse(MapLikePropertyTyper.mapLikeValueType(typedClass))
+          .map(Valid(_))
+          .getOrElse(invalid(s"There is no property '${e.getName}' in type: ${t.display}"))
+      case TypedObjectTypingResult(fields, objType) =>
+        val typeBasedOnFields = fields.get(e.getName)
+        typeBasedOnFields.orElse(propertyTypeBasedOnMethod(e)(objType))
+          .map(Valid(_))
+          .getOrElse(invalid(s"There is no property '${e.getName}' in type: ${t.display}"))
       case dict: TypedDict =>
         dictTyper.typeDictValue(dict, e)
     }
+  }
+
+  private def propertyTypeBasedOnMethod(e: PropertyOrFieldReference)(typedClass: TypedClass) = {
+    val clazzDefinition = EspTypeUtils.clazzDefinition(typedClass.klass)
+    clazzDefinition.getPropertyOrFieldType(e.getName)
   }
 
   private def extractListType(parent: TypingResult): TypingResult = parent match {

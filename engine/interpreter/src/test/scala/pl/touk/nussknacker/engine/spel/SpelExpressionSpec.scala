@@ -9,6 +9,7 @@ import java.util.Collections
 import cats.data.Validated.{Invalid, Valid}
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.effect.IO
+import org.apache.avro.generic.GenericData
 import org.scalatest.{EitherValues, FunSuite, Matchers}
 import pl.touk.nussknacker.engine.api.{Context, ParamName}
 import pl.touk.nussknacker.engine.api.context.ProcessCompilationError.NodeId
@@ -22,7 +23,7 @@ import pl.touk.nussknacker.engine.api.typed.TypedMap
 import pl.touk.nussknacker.engine.api.typed.typing.{Typed, TypedObjectTypingResult}
 import pl.touk.nussknacker.engine.dict.SimpleDictRegistry
 import pl.touk.nussknacker.engine.spel.SpelExpressionParser.{Flavour, Standard}
-import pl.touk.nussknacker.engine.types.JavaClassWithVarargs
+import pl.touk.nussknacker.engine.types.{GeneratedAvroClass, JavaClassWithVarargs}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
@@ -147,8 +148,6 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
     expr.evaluateSyncToValue[Any](contextWithList(new util.ArrayList[String]()))
     //third run - expression is compiled as ArrayList and we fail :(
     expr.evaluateSyncToValue[Any](contextWithList(Collections.emptyList()))
-
-
   }
 
   // TODO: fixme
@@ -198,8 +197,7 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
     parse[Any]("#processHelper.addAll(1, 2, 3)", ctxWithGlobal) shouldBe 'valid
   }
 
-  // TODO handle java varargs
-  ignore("validate MethodReference for java varargs") {
+  test("validate MethodReference for java varargs") {
     parse[Any]("#javaClassWithVarargs.addAll(1, 2, 3)", ctxWithGlobal) shouldBe 'valid
   }
 
@@ -281,7 +279,11 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
 
     parseOrFail[String]("#map.key1", withMapVar).evaluateSyncToValue[String](withMapVar) should equal("value1")
     parseOrFail[Integer]("#map.key2", withMapVar).evaluateSyncToValue[Integer](withMapVar) should equal(20)
+  }
 
+  test("check return type for map property accessed in dot notation") {
+    parse[String]("#processHelper.stringOnStringMap.key1", ctxWithGlobal) shouldBe 'valid
+    parse[Integer]("#processHelper.stringOnStringMap.key1", ctxWithGlobal) shouldBe 'invalid
   }
 
   test("allow access to objects with get method in dot notation") {
@@ -289,6 +291,28 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
 
     parseOrFail[String]("#obj.key1", withObjVar).evaluateSyncToValue[String](withObjVar) should equal("value1")
     parseOrFail[Integer]("#obj.key2", withObjVar).evaluateSyncToValue[Integer](withObjVar) should equal(20)
+  }
+
+  test("check property if is defined even if class has get method") {
+    val withObjVar = ctx.withVariable("obj", new SampleObjectWithGetMethod(Map.empty))
+
+    parse[Boolean]("#obj.definedProperty == 123", withObjVar) shouldBe 'invalid
+    parseOrFail[Boolean]("#obj.definedProperty == '123'", withObjVar).evaluateSyncToValue[Boolean](withObjVar) shouldBe true
+  }
+
+  test("check property if is defined even if class has get method - avro generic record") {
+    val record = new GenericData.Record(GeneratedAvroClass.SCHEMA$)
+    record.put("text", "foo")
+    val withObjVar = ctx.withVariable("obj", record)
+
+    parseOrFail[String]("#obj.text", withObjVar).evaluateSyncToValue[String](withObjVar) shouldEqual "foo"
+  }
+
+  test("exact check properties in generated avro classes") {
+    val withObjVar = ctx.withVariable("obj", GeneratedAvroClass.newBuilder().setText("123").build())
+
+    parse[Boolean]("#obj.notExistingProperty == 123", withObjVar) shouldBe 'invalid
+    parseOrFail[Boolean]("#obj.getText == '123'", withObjVar).evaluateSyncToValue[Boolean](withObjVar) shouldBe true
   }
 
   test("allow access to statics") {
@@ -397,6 +421,12 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
     parse[Any]("{ Field1: 'Field1Value', Field2: 'Field2Value', Field3: #input.value }", ctxWithInput) shouldBe 'valid
   }
 
+  test("validate list literals") {
+    parse[Int]("#processHelper.stringList({})", ctxWithGlobal) shouldBe 'valid
+    parse[Int]("#processHelper.stringList({'aa'})", ctxWithGlobal) shouldBe 'valid
+    parse[Int]("#processHelper.stringList({333})", ctxWithGlobal) shouldNot be ('valid)
+  }
+
   test("type map literals") {
     val ctxWithInput = ctx.withVariable("input", SampleValue(444))
     parse[Any]("{ Field1: 'Field1Value', Field2: #input.value }.Field1", ctxWithInput) shouldBe 'valid
@@ -479,7 +509,10 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
 
     parseOrFail[String]("#input.str", valCtxWithMap).evaluateSyncToValue[String](ctx) shouldBe "aaa"
     parseOrFail[Long]("#input.lon", valCtxWithMap).evaluateSyncToValue[Long](ctx) shouldBe 3444
-
+    parse[Any]("#input.notExisting", valCtxWithMap) shouldBe 'invalid
+    parseOrFail[Boolean]("#input.containsValue('aaa')", valCtxWithMap).evaluateSyncToValue[Boolean](ctx) shouldBe true
+    parseOrFail[Int]("#input.size", valCtxWithMap).evaluateSyncToValue[Int](ctx) shouldBe 2
+    parseOrFail[Boolean]("#input == {str: 'aaa', lon: 3444}", valCtxWithMap).evaluateSyncToValue[Boolean](ctx) shouldBe true
   }
 
   test("be able to type toString()") {
@@ -607,6 +640,30 @@ class SpelExpressionSpec extends FunSuite with Matchers with EitherValues {
     parseWithDicts[Boolean]("#stringValue == #enum['one']", withObjVar, dicts) shouldBe 'invalid
   }
 
+  test("invokes methods on primitives correctly") {
+    def invokeAndCheck[T:TypeTag](expr: String, result: T): Unit = {
+      val parsed = parseOrFail[T](expr)
+      //Bytecode generation happens only after successful invoke at times. To be sure we're there we round it up to 5 ;)
+      (1 to 5).foreach { _ =>
+        parsed.evaluateSyncToValue[T](ctx) shouldBe result
+      }
+    }
+
+    invokeAndCheck("1.toString", "1")
+    invokeAndCheck("1.toString()", "1")
+    invokeAndCheck("1.doubleValue", 1d)
+    invokeAndCheck("1.doubleValue()", 1d)
+
+    invokeAndCheck("false.toString", "false")
+    invokeAndCheck("false.toString()", "false")
+    invokeAndCheck("false.booleanValue", false)
+    invokeAndCheck("false.booleanValue()", false)
+
+    //not primitives, just to make sure toString works on other objects...
+    invokeAndCheck("{}.toString", "[]")
+    invokeAndCheck("#obj.id.toString", "1")
+  }
+
 }
 
 case class SampleObject(list: List[SampleValue])
@@ -635,11 +692,15 @@ object SampleGlobalObject {
   def one() = 1
   def now: LocalDateTime = LocalDateTime.now()
   def identityMap(map: java.util.Map[String, Any]): java.util.Map[String, Any] = map
+  def stringList(arg: java.util.List[String]): Int = arg.size()
   def toAny(value: Any): Any = value
+  def stringOnStringMap: java.util.Map[String, String] = Map("key1" -> "value1", "key2" -> "value2").asJava
 }
 
 class SampleObjectWithGetMethod(map: Map[String, Any]) {
 
   def get(field: String): Any = map.getOrElse(field, throw new IllegalArgumentException(s"No such field: $field"))
+
+  def definedProperty: String = "123"
 
 }
