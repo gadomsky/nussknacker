@@ -1,0 +1,594 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>Flink custom transformers · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="../gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-search/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="../gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="../Configuration.html" />
+    
+    
+    <link rel="prev" href="Subprocesses.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="../">
+            
+                <a href="../">
+            
+                    
+                    Introduction
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="../Why.html">
+            
+                <a href="../Why.html">
+            
+                    
+                    Why Nussknacker
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+        
+        <li class="divider"></li>
+        
+        
+    
+        <li class="chapter " data-level="2.1" data-path="../Quickstart.html">
+            
+                <a href="../Quickstart.html">
+            
+                    
+                    Quickstart
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.2" data-path="../UI.html">
+            
+                <a href="../UI.html">
+            
+                    
+                    UI Manual
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.3" data-path="../DesigningProcesses.html">
+            
+                <a href="../DesigningProcesses.html">
+            
+                    
+                    Designing processes
+            
+                </a>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="2.3.1" data-path="BasicNodes.html">
+            
+                <a href="BasicNodes.html">
+            
+                    
+                    Basic nodes
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.3.2" data-path="Subprocesses.html">
+            
+                <a href="Subprocesses.html">
+            
+                    
+                    Subprocesses
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="2.3.3" data-path="FlinkCustomTransformers.html">
+            
+                <a href="FlinkCustomTransformers.html">
+            
+                    
+                    Flink custom transformers
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="2.4" data-path="../Configuration.html">
+            
+                <a href="../Configuration.html">
+            
+                    
+                    Configuration
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="2.5" data-path="../Security.html">
+            
+                <a href="../Security.html">
+            
+                    
+                    Security
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+        
+        <li class="divider"></li>
+        
+        
+    
+        <li class="chapter " data-level="3.1" data-path="../Architecture.html">
+            
+                <a href="../Architecture.html">
+            
+                    
+                    Architecture
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="3.2" data-path="../Engines.html">
+            
+                <a href="../Engines.html">
+            
+                    
+                    Engines
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="3.3" data-path="../API.html">
+            
+                <a href="../API.html">
+            
+                    
+                    API
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+        
+        <li class="divider"></li>
+        
+        
+    
+        <li class="chapter " data-level="4.1" data-path="../Metrics.html">
+            
+                <a href="../Metrics.html">
+            
+                    
+                    Monitoring
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.2" data-path="../Install.html">
+            
+                <a href="../Install.html">
+            
+                    
+                    How to install
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.3" data-path="../Resources.html">
+            
+                <a href="../Resources.html">
+            
+                    
+                    Resources
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.4" data-path="../PoweredBy.html">
+            
+                <a href="../PoweredBy.html">
+            
+                    
+                    Powered by Nussknacker
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.5" data-path="../Roadmap.html">
+            
+                <a href="../Roadmap.html">
+            
+                    
+                    Roadmap
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.6" data-path="../Changelog.html">
+            
+                <a href="../Changelog.html">
+            
+                    
+                    Changelog
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.7" data-path="../MigrationGuide.html">
+            
+                <a href="../MigrationGuide.html">
+            
+                    
+                    Migration guide
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="4.8" data-path="../GLOSSARY.html">
+            
+                <a href="../GLOSSARY.html">
+            
+                    
+                    Glossary
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href=".." >Flink custom transformers</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <h1 id="flink-custom-transformers">Flink custom transformers</h1>
+<p>Nussknacker basic building blocks like filters, enrichers and processors serve stateless streams well, but
+to use <a href="../GLOSSARY.html#flink" class="glossary-term" title="Apache Flink&#xAE; is an open-source stream processing framework for distributed, high-performing, always-available, and accurate data streaming applications. See https://flink.apache.org/">Flink</a> stateful features we have to create more complex elements. </p>
+<p>We provide generic aggregations in <code>pl.touk.nussknacker.engine.flink.util.transformer</code> package in nusssknacker-<a href="../GLOSSARY.html#flink" class="glossary-term" title="Apache Flink&#xAE; is an open-source stream processing framework for distributed, high-performing, always-available, and accurate data streaming applications. See https://flink.apache.org/">flink</a>-util subproject, 
+you can use most of them with <code>genericAssembly.jar</code></p>
+<h2 id="union">Union</h2>
+<p><img src="../img/union_window.png" alt="union_window"></p>
+<p>Joins multiple branches in one stream. For each incoming branch we have to define two expressions:</p>
+<ul>
+<li>key - it&apos;s value should be of type <code>String</code>, can be used to detect what is source branch of given element</li>
+<li>value - this is the output value, it should have same  </li>
+</ul>
+<p>Union node defines new stream which is union of all branches. In this new stream there is only one variable, it&apos;s name
+is defined by &apos;Output&apos; parameter, it&apos;s value is: </p>
+<pre><code class="lang-$json">{
+  &quot;key&quot;: `value of key expression for given event`,
+  &quot;branch1&quot;: `value expression when event comes from branch1, otherwise null`,
+  &quot;branch2&quot;: `value expression when event comes from branch2, otherwise null`,
+  ...
+}
+</code></pre>
+<p>Currently branches are identified by id of last node in this branch before union.</p>
+<h2 id="aggregate">Aggregate</h2>
+<p><img src="../img/aggregate_window.png" alt="aggregate_window"></p>
+<p>This element defines generic aggregation of values in sliding time window of given length. Parameters are:</p>
+<ul>
+<li>keyBy - expression defining key for which we compute aggregate, e.g. <code>#input.userId</code></li>
+<li>aggregator - type of aggregation (see below)</li>
+<li>aggregateBy - value which will be aggregated (e.g. <code>#input.callDuration</code>, <code>#input.productId</code>)</li>
+<li>windowLength - length of time window</li>
+</ul>
+<p>For each event additional variable will be added. For example: for aggregate node with length of 10 minutes, aggregation max and input events:</p>
+<ul>
+<li><code>{userId: 1, callDuration: 1, hour: 10:10}</code></li>
+<li><code>{userId: 1, callDuration: 5, hour: 10:10}</code></li>
+<li><code>{userId: 2, callDuration: 4, hour: 10:15}</code></li>
+<li><code>{userId: 1, callDuration: 4, hour: 10:15}</code></li>
+<li><code>{userId: 1, callDuration: 3, hour: 10:23}</code></li>
+</ul>
+<p>Following events will be emitted:</p>
+<ul>
+<li><code>{userId: 1, callDuration: 1, hour: 10:10, aggregate: 1}</code> - first event</li>
+<li><code>{userId: 1, callDuration: 5, hour: 10:10, aggregate: 5}</code> - higher duration</li>
+<li><code>{userId: 2, callDuration: 4, hour: 10:15, aggregate: 4}</code> - user with different id</li>
+<li><code>{userId: 1, callDuration: 4, hour: 10:15, aggregate: 4}</code> - lower duration</li>
+<li><code>{userId: 1, callDuration: 3, hour: 10:23, aggregate: 4}</code> - we ignore event from 10:10, as length = 10min</li>
+</ul>
+<h3 id="aggregator-types">Aggregator types</h3>
+<p>Currently we support following aggregations:</p>
+<ul>
+<li>Max - computes maximal value</li>
+<li>Min - computes minimal value</li>
+<li>Sum - computes sum of values</li>
+<li>Set - the result is set of incoming elements (can be v. ineffective for large sets, try to use ApproximateSetCardinality in this case )</li>
+<li>ApproximateSetCardinality - computes approximate cardinality of set using <a href="https://en.wikipedia.org/wiki/HyperLogLog" target="_blank">HyperLogLog</a> algorithm.</li>
+</ul>
+<h2 id="aggregatetumbling">AggregateTumbling</h2>
+<p>This aggregation in contrary to Aggregate uses tumbling window. All parameters are the same.
+For example, for aggregate-tumbling node with length of 10 minutes, aggregation max and input events from previous example, will be emitted output events:</p>
+<ul>
+<li><code>{userId: 1, callDuration: 5, hour: 10:20, aggregate: 5}</code> - highest duration during first ten minutes for userId: 1</li>
+<li><code>{userId: 2, callDuration: 4, hour: 10:20, aggregate: 4}</code> - highest duration during first ten minutes for userId: 2</li>
+<li><code>{userId: 1, callDuration: 3, hour: 10:30, aggregate: 4}</code> - highest duration during second ten minutes for userId: 1</li>
+</ul>
+<h2 id="previousvalue">PreviousValue</h2>
+<p><img src="../img/previous_value_window.png" alt="previous_value_window"></p>
+<p>Simple transformation which stores arbitrary value for given key. This element has two parameters:</p>
+<ul>
+<li>keyBy - expression defining key for which we compute aggregate, e.g. <code>#input.userId</code></li>
+<li>value - stored value</li>
+</ul>
+<p>So, for example, given stream of events which contain users with their current location, when we set </p>
+<ul>
+<li>keyBy is <code>#input.userId</code></li>
+<li>value is <code>#input.location</code>
+then the value of output variable is the previous location for current user. If this is the first appearance of this user,
+<strong>current</strong> location will be returned</li>
+</ul>
+
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="Subprocesses.html" class="navigation navigation-prev " aria-label="Previous page: Subprocesses">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="../Configuration.html" class="navigation navigation-next " aria-label="Next page: Configuration">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"Flink custom transformers","level":"2.3.3","depth":2,"next":{"title":"Configuration","level":"2.4","depth":1,"path":"Configuration.md","ref":"Configuration.md","articles":[]},"previous":{"title":"Subprocesses","level":"2.3.2","depth":2,"path":"designingProcesses/Subprocesses.md","ref":"designingProcesses/Subprocesses.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{"nussknackerVersion":"0.0.11","flinkMajorVersion":"1.9"},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"designingProcesses/FlinkCustomTransformers.md","mtime":"2020-05-19T11:07:29.028Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2020-05-19T11:08:04.720Z"},"basePath":"..","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="../gitbook/gitbook.js"></script>
+    <script src="../gitbook/theme.js"></script>
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search-engine.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-search/search.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/lunr.min.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-lunr/search-lunr.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-sharing/buttons.js"></script>
+        
+    
+        
+        <script src="../gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+
